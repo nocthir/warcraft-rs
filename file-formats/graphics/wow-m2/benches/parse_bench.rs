@@ -18,6 +18,7 @@ fn create_test_model() -> M2Model {
         bones: vec![],
         key_bone_lookup: vec![],
         vertices: vec![],
+        color_animations: vec![],
         textures: vec![],
         materials: vec![],
         raw_data: Default::default(),

@@ -10,11 +10,11 @@ use crate::chunks::infrastructure::{ChunkHeader, ChunkReader};
 use crate::chunks::material::M2Material;
 use crate::chunks::{
     AfraChunk, AnimationFileIds, BoneData, BoneFileIds, CollisionMeshData, DbocChunk, DpivChunk,
-    EdgeFadeData, ExtendedParticleData, GeometryParticleIds, LightingDetails, LodData, M2Texture,
-    M2Vertex, ModelAlphaData, ParentAnimationBlacklist, ParentAnimationData, ParentEventData,
-    ParentSequenceBounds, ParticleGeosetData, PhysicsData, PhysicsFileDataChunk, PhysicsFileId,
-    RecursiveParticleIds, SkeletonData, SkeletonFileId, SkinFileIds, TextureAnimationChunk,
-    TextureFileIds, WaterfallEffect,
+    EdgeFadeData, ExtendedParticleData, GeometryParticleIds, LightingDetails, LodData,
+    M2ColorAnimation, M2Texture, M2Vertex, ModelAlphaData, ParentAnimationBlacklist,
+    ParentAnimationData, ParentEventData, ParentSequenceBounds, ParticleGeosetData, PhysicsData,
+    PhysicsFileDataChunk, PhysicsFileId, RecursiveParticleIds, SkeletonData, SkeletonFileId,
+    SkinFileIds, TextureAnimationChunk, TextureFileIds, WaterfallEffect,
 };
 use crate::common::{M2Array, read_array};
 use crate::error::{M2Error, Result};
@@ -50,6 +50,8 @@ pub struct M2Model {
     pub key_bone_lookup: Vec<u16>,
     /// Vertices
     pub vertices: Vec<M2Vertex>,
+    /// Color animations
+    pub color_animations: Vec<M2ColorAnimation>,
     /// Textures
     pub textures: Vec<M2Texture>,
     /// Materials (render flags)
@@ -262,6 +264,7 @@ impl Default for M2Model {
             bones: Vec::new(),
             key_bone_lookup: Vec::new(),
             vertices: Vec::new(),
+            color_animations: Vec::new(),
             textures: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
@@ -856,6 +859,7 @@ impl M2Model {
             bones: Vec::new(),
             key_bone_lookup: Vec::new(),
             vertices: Vec::new(),
+            color_animations: Vec::new(),
             textures: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
@@ -1101,6 +1105,7 @@ impl M2Model {
             bones: Vec::new(),            // TODO: Parse from chunk
             key_bone_lookup: Vec::new(),  // TODO: Parse from chunk
             vertices: Vec::new(),         // TODO: Parse from chunk
+            color_animations: Vec::new(), // TODO: Parse from chunk
             textures: Vec::new(),         // TODO: Parse from chunk
             materials: Vec::new(),        // TODO: Parse from chunk
             raw_data: M2RawData::default(),
@@ -1220,6 +1225,11 @@ impl M2Model {
             )
         })?;
 
+        // Parse color animations
+        let color_animations = read_array(reader, &header.color_animations.convert(), |r| {
+            M2ColorAnimation::parse(r)
+        })?;
+
         // Parse textures
         let textures = read_array(reader, &header.textures.convert(), |r| {
             M2Texture::parse(r, header.version)
@@ -1263,6 +1273,7 @@ impl M2Model {
             bones,
             key_bone_lookup,
             vertices,
+            color_animations,
             textures,
             materials,
             raw_data,
@@ -2289,6 +2300,7 @@ mod tests {
             bones: Vec::new(),
             key_bone_lookup: Vec::new(),
             vertices: Vec::new(),
+            color_animations: Vec::new(),
             textures: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
@@ -2350,6 +2362,7 @@ mod tests {
             bones: Vec::new(),
             key_bone_lookup: Vec::new(),
             vertices: Vec::new(),
+            color_animations: Vec::new(),
             textures: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
@@ -2512,6 +2525,7 @@ mod tests {
             bones: Vec::new(),
             key_bone_lookup: Vec::new(),
             vertices: Vec::new(),
+            color_animations: Vec::new(),
             textures: vec![texture],
             materials: Vec::new(),
             raw_data: M2RawData::default(),
@@ -2576,6 +2590,7 @@ mod tests {
             bones: Vec::new(),
             key_bone_lookup: Vec::new(),
             vertices: Vec::new(),
+            color_animations: Vec::new(),
             textures: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
