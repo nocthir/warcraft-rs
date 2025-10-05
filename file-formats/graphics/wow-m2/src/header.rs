@@ -130,8 +130,8 @@ pub struct M2Header {
     // Texture-related fields
     /// Textures
     pub textures: M2Array<u32>,
-    /// Transparency lookups
-    pub transparency_lookup: M2Array<u16>,
+    /// Texture weights
+    pub texture_weights: M2Array<u16>,
     /// Texture flipbooks - only present in BC and earlier
     pub texture_flipbooks: Option<M2Array<u32>>,
     /// Texture animations
@@ -264,7 +264,7 @@ impl M2Header {
         let color_animations = M2Array::parse(reader)?;
 
         let textures = M2Array::parse(reader)?;
-        let transparency_lookup = M2Array::parse(reader)?;
+        let texture_weights = M2Array::parse(reader)?;
 
         // Texture flipbooks only exist in BC and earlier
         let texture_flipbooks = if version <= 263 {
@@ -371,7 +371,7 @@ impl M2Header {
             num_skin_profiles,
             color_animations,
             textures,
-            transparency_lookup,
+            texture_weights,
             texture_flipbooks,
             texture_animations,
             color_replacements,
@@ -443,7 +443,7 @@ impl M2Header {
         self.color_animations.write(writer)?;
 
         self.textures.write(writer)?;
-        self.transparency_lookup.write(writer)?;
+        self.texture_weights.write(writer)?;
 
         // Texture flipbooks only exist in BC and earlier
         if self.version <= 263 {
@@ -566,7 +566,7 @@ impl M2Header {
             num_skin_profiles,
             color_animations: M2Array::new(0, 0),
             textures: M2Array::new(0, 0),
-            transparency_lookup: M2Array::new(0, 0),
+            texture_weights: M2Array::new(0, 0),
             texture_flipbooks,
             texture_animations: M2Array::new(0, 0),
             color_replacements: M2Array::new(0, 0),

@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{ErrorKind, Read, Seek, SeekFrom, Write};
 
+use crate::chunks::texture::M2TextureWeight;
 use crate::io_ext::ReadExt;
 use std::path::Path;
 
@@ -16,7 +17,7 @@ use crate::chunks::{
     PhysicsFileDataChunk, PhysicsFileId, RecursiveParticleIds, SkeletonData, SkeletonFileId,
     SkinFileIds, TextureAnimationChunk, TextureFileIds, WaterfallEffect,
 };
-use crate::common::{M2Array, read_array};
+use crate::common::{M2Array, M2Parse, read_array};
 use crate::error::{M2Error, Result};
 use crate::file_resolver::FileResolver;
 use crate::header::{M2_MAGIC_CHUNKED, M2_MAGIC_LEGACY, M2Header, M2ModelFlags};
@@ -54,6 +55,8 @@ pub struct M2Model {
     pub color_animations: Vec<M2ColorAnimation>,
     /// Textures
     pub textures: Vec<M2Texture>,
+    /// Texture weights
+    pub texture_weights: Vec<M2TextureWeight>,
     /// Materials (render flags)
     pub materials: Vec<M2Material>,
     /// Raw data for other sections
@@ -226,7 +229,7 @@ impl Default for M2Model {
                 num_skin_profiles: Some(0),
                 color_animations: M2Array::default(),
                 textures: M2Array::default(),
-                transparency_lookup: M2Array::default(),
+                texture_weights: M2Array::default(),
                 texture_flipbooks: None,
                 texture_animations: M2Array::default(),
                 color_replacements: M2Array::default(),
@@ -266,6 +269,7 @@ impl Default for M2Model {
             vertices: Vec::new(),
             color_animations: Vec::new(),
             textures: Vec::new(),
+            texture_weights: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
             skin_file_ids: None,
@@ -861,6 +865,7 @@ impl M2Model {
             vertices: Vec::new(),
             color_animations: Vec::new(),
             textures: Vec::new(),
+            texture_weights: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
             skin_file_ids: None,
@@ -953,7 +958,7 @@ impl M2Model {
         let color_animations = M2Array::parse(chunk_inner)?;
 
         let textures = M2Array::parse(chunk_inner)?;
-        let transparency_lookup = M2Array::parse(chunk_inner)?;
+        let texture_weights = M2Array::parse(chunk_inner)?;
 
         // Texture flipbooks only exist in BC and earlier
         let texture_flipbooks = if version <= 263 {
@@ -1057,7 +1062,7 @@ impl M2Model {
             num_skin_profiles,
             color_animations,
             textures,
-            transparency_lookup,
+            texture_weights,
             texture_flipbooks,
             texture_animations,
             color_replacements,
@@ -1107,6 +1112,7 @@ impl M2Model {
             vertices: Vec::new(),         // TODO: Parse from chunk
             color_animations: Vec::new(), // TODO: Parse from chunk
             textures: Vec::new(),         // TODO: Parse from chunk
+            texture_weights: Vec::new(),  // TODO: Parse from chunk
             materials: Vec::new(),        // TODO: Parse from chunk
             raw_data: M2RawData::default(),
             skin_file_ids: None,              // Will be populated from SFID chunk
@@ -1235,6 +1241,11 @@ impl M2Model {
             M2Texture::parse(r, header.version)
         })?;
 
+        // Parse texture weights
+        let texture_weights = read_array(reader, &header.texture_weights.convert(), |r| {
+            M2TextureWeight::parse(r)
+        })?;
+
         // Parse materials (render flags)
         let materials = read_array(reader, &header.render_flags.convert(), |r| {
             M2Material::parse(r, header.version)
@@ -1275,6 +1286,7 @@ impl M2Model {
             vertices,
             color_animations,
             textures,
+            texture_weights,
             materials,
             raw_data,
             skin_file_ids: None,
@@ -2302,6 +2314,7 @@ mod tests {
             vertices: Vec::new(),
             color_animations: Vec::new(),
             textures: Vec::new(),
+            texture_weights: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
             skin_file_ids: None,
@@ -2364,6 +2377,7 @@ mod tests {
             vertices: Vec::new(),
             color_animations: Vec::new(),
             textures: Vec::new(),
+            texture_weights: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
             skin_file_ids: Some(SkinFileIds {
@@ -2527,6 +2541,7 @@ mod tests {
             vertices: Vec::new(),
             color_animations: Vec::new(),
             textures: vec![texture],
+            texture_weights: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
             skin_file_ids: None,
@@ -2592,6 +2607,7 @@ mod tests {
             vertices: Vec::new(),
             color_animations: Vec::new(),
             textures: Vec::new(),
+            texture_weights: Vec::new(),
             materials: Vec::new(),
             raw_data: M2RawData::default(),
             skin_file_ids: None,

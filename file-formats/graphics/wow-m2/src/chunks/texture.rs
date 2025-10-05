@@ -1,7 +1,8 @@
+use crate::chunks::animation::M2AnimationTrack;
 use crate::io_ext::{ReadExt, WriteExt};
 use std::io::{Read, Seek, Write};
 
-use crate::common::M2ArrayString;
+use crate::common::{M2ArrayString, M2Parse};
 use crate::error::Result;
 use crate::version::M2Version;
 
@@ -129,6 +130,23 @@ impl M2Texture {
             flags: M2TextureFlags::empty(),
             filename,
         }
+    }
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct M2TextureWeight {
+    pub weights: M2AnimationTrack<u16>,
+}
+
+impl M2Parse for M2TextureWeight {
+    fn parse<R: Read + Seek>(reader: &mut R) -> Result<Self> {
+        let weights = M2AnimationTrack::parse(reader)?;
+        Ok(Self { weights })
+    }
+
+    fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        self.weights.write(writer)?;
+        Ok(())
     }
 }
 

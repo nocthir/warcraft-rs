@@ -20,6 +20,7 @@ fn create_test_model() -> M2Model {
         vertices: vec![],
         color_animations: vec![],
         textures: vec![],
+        texture_weights: vec![],
         materials: vec![],
         raw_data: Default::default(),
         // File reference fields
